@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Área de Estudos - MathPasso</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link rel="stylesheet" href="css/Style.css">
+    <script src="js/script.js" defer></script>
+</head>
+<body class="aula-page">
+
+    <nav>
+    <a href="index.html" class="logo">FocusLab</a>
+    <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="index.html#lista-cursos">Cursos</a></li>
+        <li><a href="index.html#sobre-nos">Sobre Nós</a></li>
+    </ul>
+    <button id="btn-theme-aula" class="btn-tema" onclick="alternarTema()">🌙 Tema Escuro</button>
+</nav>
+
+    <main class="estudos-container">
+        <h1 id="aula-titulo" class="section-title">Meu Ambiente de Estudo</h1>
+        
+        <div class="layout-superior">
+            
+            <div class="video-loader-section superficie-padrao">
+                <h3>Adicionar vídeo à aula</h3>
+                <div class="input-grupo">
+                    <input type="text" id="video-url" placeholder="Cole o link do YouTube aqui...">
+                    <button onclick="carregarVideo()" class="btn-primary">Carregar</button>
+                </div>
+                <div class="video-wrapper" id="video-container" style="display: none; padding-bottom: 56.25%; position: relative; height: 0; overflow: hidden; background-color: #000; border-radius: 10px;">
+                </div>
+            </div>
+
+            <div class="painel-ia superficie-padrao">
+                <div class="ia-header">
+                    <h3>Tire Dúvidas com IA</h3>
+                </div>
+                <div class="ia-chat" id="ia-chat-historico">
+                    <div class="mensagem ia">Olá! Sou seu assistente de estudos. Qual a sua dúvida?</div>
+                </div>
+                <div class="ia-input-area">
+                    <input type="text" id="ia-input" placeholder="Pergunte aqui...">
+                    <button onclick="enviarMensagemIA()" class="btn-ia">Enviar</button>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="layout-inferior">
+            
+            <div class="criacao-cards-section superficie-padrao">
+                <h3>Criar Anotação</h3>
+                <div class="formulario-card">
+                    <div class="linha-inputs">
+                        <input type="text" id="card-titulo" placeholder="Título (Ex: Regra do Mintermo)" maxlength="50">
+                        <input type="text" id="card-subtitulo" placeholder="Subtítulo (Opcional)" maxlength="50">
+                        <div class="seletor-cor">
+                            <label for="card-cor">Cor:</label>
+                            <input type="color" id="card-cor" value="#E8F4F8">
+                        </div>
+                    </div>
+                    <textarea id="card-texto" rows="3" placeholder="Escreva suas anotações aqui..."></textarea>
+                    <button onclick="adicionarCard()" class="btn-sucesso">Salvar Card</button>
+                </div>
+            </div>
+
+            <div class="painel-cards">
+                <div class="painel-header">
+                    <h3>Minhas Anotações (<span id="contador-cards">0</span>/100)</h3>
+                    <button onclick="gerarPDF()" class="btn-pdf">Exportar para PDF</button>
+                </div>
+                <div id="grid-cards" class="grid-cards">
+                    <p id="mensagem-vazia">Nenhum card criado ainda.</p>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Matemática FocusLab</p>
+        
+    </footer>
+
+</body>
+</html>

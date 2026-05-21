@@ -1,0 +1,12 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Abrir index.html no Firefox",
+            "type": "firefox",
+            "request": "launch",
+            "file": "/home/guilherme/Projeto A3/Matematica computacional/index.html",
+            "runtimeExecutable": "/usr/bin/firefox"
+        }
+    ]
+}
