@@ -95,7 +95,7 @@ function carregarListaHome() {
 // ==========================================
 async function carregarDadosDaAula(aulaId) {
     try {
-        const resposta = await fetch(`http://localhost:3000/api/cursos/${aulaId}`);
+        const resposta = await fetch(`/api/cursos/${aulaId}`);
         if (!resposta.ok) throw new Error("Curso não encontrado");
         const curso = await resposta.json();
 
@@ -118,7 +118,7 @@ let idCardEmEdicao = null;
 
 async function carregarDoServidor() {
     try {
-        const resposta = await fetch('http://localhost:3000/api/notas');
+        const resposta = await fetch('/api/notas');
         listaDeCards = await resposta.json();
         renderizarCards();
     } catch (erro) {
@@ -139,12 +139,12 @@ async function adicionarCard() {
 
     try {
         if (idCardEmEdicao !== null) {
-            await fetch(`http://localhost:3000/api/notas/${idCardEmEdicao}`, { method: 'DELETE' });
+            await fetch(`/api/notas/${idCardEmEdicao}`, { method: 'DELETE' });
             idCardEmEdicao = null;
             document.querySelector('.acoes-criacao .btn-sucesso').innerText = 'Salvar Anotação';
         }
 
-        await fetch('http://localhost:3000/api/notas', {
+        await fetch('/api/notas', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ titulo, subtitulo, texto, cor })
@@ -182,7 +182,7 @@ async function excluirCard(id) {
         document.querySelector('.acoes-criacao .btn-sucesso').innerText = 'Salvar Anotação';
     }
     try {
-        await fetch(`http://localhost:3000/api/notas/${id}`, { method: 'DELETE' });
+        await fetch(`/api/notas/${id}`, { method: 'DELETE' });
         mostrarNotificacao("🗑️ Anotação apagada.");
         await carregarDoServidor(); 
     } catch (erro) {
@@ -297,7 +297,7 @@ async function enviarMensagemIA() {
 }
 
 async function consultarGemini(pergunta) {
-    const resposta = await fetch('http://localhost:3000/api/chat', {
+    const resposta = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pergunta })
@@ -341,7 +341,7 @@ let respondido = false;
 
 async function carregarQuizDaAba(cursoId) {
     try {
-        const resposta = await fetch(`http://localhost:3000/api/quiz/${cursoId}`); 
+        const resposta = await fetch(`/api/quiz/${cursoId}`); 
         if (!resposta.ok) throw new Error("Erro ao buscar quiz");
         
         questoesAtuais = await resposta.json();
