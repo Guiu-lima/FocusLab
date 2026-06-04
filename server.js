@@ -5,6 +5,8 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const app = express();
 app.use(cors()); // Permite que o front-end comunique com o back-end
+// Diz ao Express para servir os arquivos da pasta atual (como index.html, css, js)
+app.use(express.static(__dirname));
 app.use(express.json()); // Permite receber dados em formato JSON
 
 // --- BASE DE DADOS SIMULADA ---
