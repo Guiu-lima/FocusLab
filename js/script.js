@@ -1,5 +1,5 @@
 // ==========================================
-// 1. CONTROLE DE TEMA (DARK / LIGHT MODE)
+// 1. CONTROLO DE TEMA (DARK / LIGHT MODE)
 // ==========================================
 function inicializarTema() {
     const temaSalvo = localStorage.getItem('mathPassoTema') || 'light';
@@ -10,7 +10,6 @@ function inicializarTema() {
 function alternarTema() {
     let temaAtual = document.documentElement.getAttribute('data-theme');
     let novoTema = temaAtual === 'dark' ? 'light' : 'dark';
-    
     document.documentElement.setAttribute('data-theme', novoTema);
     localStorage.setItem('mathPassoTema', novoTema);
     atualizarBotoesTema(novoTema);
@@ -20,304 +19,268 @@ function atualizarBotoesTema(tema) {
     const textoBotao = tema === 'dark' ? '☀️ Tema Claro' : '🌙 Tema Escuro';
     const btnIndex = document.getElementById('btn-theme');
     const btnAula = document.getElementById('btn-theme-aula');
-    
     if (btnIndex) btnIndex.innerText = textoBotao;
     if (btnAula) btnAula.innerText = textoBotao;
 }
 
-// Inicializa o tema imediatamente ao ler o script
 inicializarTema();
 
 // ==========================================
 // 2. INICIALIZAÇÃO GERAL (DOM LOADED)
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
+    // Se estiver na Página Inicial (index.html)
     if (document.getElementById('lista-cursos')) {
         carregarListaHome();
     }
     
-    if (document.getElementById('grid-cards')) {
-        carregarDoLocalStorage();
-    }
-
-    const inputIA = document.getElementById('ia-input');
-    if (inputIA) {
-        inputIA.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                enviarMensagemIA();
-            }
-        });
+    // Se estiver na Página da Aula (aula.html)
+    if (document.getElementById('video-aula')) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const cursoId = urlParams.get('id') || 'mintermos';
+        
+        carregarDadosDaAula(cursoId);
+        carregarDoServidor();       // Ativa o mural de notas
+        carregarQuizDaAba(cursoId); // Liga o motor do quiz dinâmico
     }
 });
 
 // ==========================================
-// 3. BANCO DE DADOS SIMULADO (Cursos)
+// 3. RENDERIZAÇÃO DA PÁGINA INICIAL E VÍDEOS
 // ==========================================
 const conteudoCursos = {
-    "mintermos": {
-        titulo: "Mintermos (Soma de Produtos)",
-        descricao: "Aprenda a extrair expressões booleanas focando nos resultados '1' da tabela verdade. Essencial para construir circuitos a partir de requisitos exatos."
+    "mintermos": { 
+        titulo: "Mintermos (Soma de Produtos)", 
+        descricao: "Aprenda a extrair expressões booleanas focando nos resultados '1' da tabela verdade." 
     },
-    "maxtermos": {
-        titulo: "Maxtermos (Produto de Somas)",
-        descricao: "Aprenda a extrair expressões booleanas focando nos resultados '0' da tabela verdade. Útil para quando há menos zeros do que uns na saída."
+    "maxtermos": { 
+        titulo: "Maxtermos (Produto de Somas)", 
+        descricao: "Aprenda a extrair expressões booleanas focando nos resultados '0' da tabela verdade." 
     },
-    "karnaugh": {
-        titulo: "Mapa de Karnaugh",
-        descricao: "A técnica visual para simplificar circuitos lógicos de forma rápida e intuitiva, agrupando bits adjacentes."
+    "karnaugh": { 
+        titulo: "Mapa de Karnaugh", 
+        descricao: "A técnica visual para simplificar circuitos lógicos de forma rápida e intuitiva, agrupando bits adjacentes." 
     }
-    
-
 };
 
 function carregarListaHome() {
     const container = document.getElementById('lista-cursos');
     if (!container) return;
+    container.innerHTML = "";
     
-    container.innerHTML = '';
-    
-    Object.keys(conteudoCursos).forEach(key => {
-        const curso = conteudoCursos[key];
-        container.innerHTML += `
-            <div class="topic-card" onclick="window.location.href='aula.html?id=${key}'">
-                <h3>${curso.titulo}</h3>
-                <p>${curso.descricao}</p>
-            </div>
+    Object.keys(conteudoCursos).forEach(id => {
+        const curso = conteudoCursos[id];
+        const card = document.createElement('div');
+        card.className = 'topic-card';
+        card.onclick = () => window.location.href = `aula.html?id=${id}`;
+        card.innerHTML = `
+            <h3>${curso.titulo}</h3>
+            <p>${curso.descricao}</p>
         `;
+        container.appendChild(card);
     });
 }
 
-// ==========================================
-// 4. LÓGICA DO VÍDEO DO YOUTUBE
-// ==========================================
-function carregarVideo() {
-    const inputUrl = document.getElementById('video-url').value.trim();
-    const container = document.getElementById('video-container');
-    
-    if (!inputUrl) {
-        alert("Por favor, cole um link do YouTube.");
-        return;
+async function carregarDadosDaAula(cursoId) {
+    try {
+        const resposta = await fetch(`http://localhost:3000/api/cursos/${cursoId}`);
+        if (!resposta.ok) throw new Error("Erro ao buscar dados da aula");
+        const dados = await resposta.json();
+        
+        document.getElementById('titulo-aula').innerText = dados.titulo;
+        document.getElementById('video-aula').src = `https://www.youtube.com/embed/${dados.videoId}`;
+    } catch (erro) {
+        console.error("Erro ao carregar dados da aula:", erro);
     }
-
-    let videoId = "";
-    
-    if (inputUrl.includes("youtube.com/watch?v=")) {
-        videoId = inputUrl.split("v=")[1].split("&")[0];
-    } else if (inputUrl.includes("youtu.be/")) {
-        videoId = inputUrl.split("youtu.be/")[1].split("?")[0];
-    } else if (inputUrl.includes("youtube.com/shorts/")) {
-        videoId = inputUrl.split("shorts/")[1].split("?")[0];
-    } else if (inputUrl.length === 11) {
-        videoId = inputUrl;
-    } else {
-        alert("Link não reconhecido.");
-        return;
-    }
-
-    videoId = videoId.split("/")[0];
-
-    container.innerHTML = `
-        <iframe 
-            src="https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1" 
-            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-            allowfullscreen>
-        </iframe>
-    `;
-    
-    container.style.display = "block";
 }
 
 // ==========================================
-// 5. LÓGICA DOS CARDS DE ANOTAÇÃO
+// 4. LÓGICA DO MURAL DE ANOTAÇÕES (COM BACK-END)
 // ==========================================
 let listaDeCards = [];
-const LIMITE_CARDS = 100;
+let idCardEmEdicao = null;
+const LIMITE_CARDS = 1000;
 
-function carregarDoLocalStorage() {
-    const cardsSalvos = localStorage.getItem('mathPassoCards');
-    if (cardsSalvos) {
-        listaDeCards = JSON.parse(cardsSalvos);
+async function carregarDoServidor() {
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const cursoId = urlParams.get('id') || 'mintermos';
+
+        const resposta = await fetch(`http://localhost:3000/api/notas?cursoId=${cursoId}`);
+        listaDeCards = await resposta.json();
         renderizarCards();
+    } catch (erro) {
+        console.error("Erro ao carregar notas do servidor:", erro);
     }
 }
 
-function salvarNoLocalStorage() {
-    localStorage.setItem('mathPassoCards', JSON.stringify(listaDeCards));
-}
+async function adicionarCard() {
+    const tituloInput = document.getElementById('nota-titulo');
+    const subtuloInput = document.getElementById('nota-subtitulo');
+    const textoInput = document.getElementById('nota-texto');
+    const corInput = document.getElementById('nota-cor');
 
-function adicionarCard() {
-    if (listaDeCards.length >= LIMITE_CARDS) {
-        alert(`Você atingiu o limite máximo de ${LIMITE_CARDS} anotações.`);
-        return;
-    }
-
-    const titulo = document.getElementById('card-titulo').value.trim();
-    const subtitulo = document.getElementById('card-subtitulo').value.trim();
-    const texto = document.getElementById('card-texto').value.trim();
-    const cor = document.getElementById('card-cor').value;
+    const titulo = tituloInput.value.trim();
+    const subtitulo = subtuloInput.value.trim();
+    const texto = textoInput.value.trim();
+    const cor = corInput.value;
 
     if (!titulo || !texto) {
-        alert("O Título e as Anotações são obrigatórios!");
+        alert("Por favor, preencha o título e o conteúdo da anotação.");
         return;
     }
 
-    const novoCard = {
-        titulo: titulo,
-        subtitulo: subtitulo,
-        texto: texto,
-        cor: cor,
-        id: Date.now() 
-    };
+    const urlParams = new URLSearchParams(window.location.search);
+    const cursoId = urlParams.get('id') || 'mintermos';
 
-    listaDeCards.push(novoCard);
-    salvarNoLocalStorage();
-    
-    document.getElementById('card-titulo').value = '';
-    document.getElementById('card-subtitulo').value = '';
-    document.getElementById('card-texto').value = '';
-    
-    renderizarCards();
+    const dadosNota = { titulo, subtitulo, texto, cor, cursoId };
+
+    try {
+        if (idCardEmEdicao !== null) {
+            await fetch(`http://localhost:3000/api/notas/${idCardEmEdicao}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dadosNota)
+            });
+            idCardEmEdicao = null;
+            document.querySelector('.btn-sucesso').innerText = 'Salvar Anotação';
+        } else {
+            if (listaDeCards.length >= LIMITE_CARDS) {
+                alert(`Atingiu o limite máximo de ${LIMITE_CARDS} anotações.`);
+                return;
+            }
+            await fetch('http://localhost:3000/api/notas', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dadosNota)
+            });
+        }
+
+        tituloInput.value = "";
+        subtuloInput.value = "";
+        textoInput.value = "";
+        
+        await carregarDoServidor();
+        mostrarToast("Anotação guardada com sucesso! 📝");
+    } catch (erro) {
+        console.error("Erro ao salvar anotação:", erro);
+    }
 }
 
-function excluirCard(id) {
-    listaDeCards = listaDeCards.filter(card => card.id !== id);
-    salvarNoLocalStorage();
-    renderizarCards();
+function iniciarEdicao(id) {
+    const card = listaDeCards.find(c => c.id === id);
+    if (!card) return;
+
+    document.getElementById('nota-titulo').value = card.titulo;
+    document.getElementById('nota-subtitulo').value = card.subtitulo || "";
+    document.getElementById('nota-texto').value = card.texto;
+    document.getElementById('nota-cor').value = card.cor;
+
+    idCardEmEdicao = id;
+    document.querySelector('.btn-sucesso').innerText = 'Atualizar Anotação';
+}
+
+function alternarExpansaoCard(btn) {
+    const cardElement = btn.closest('.card-anotacao');
+    if (cardElement.classList.contains('expandido')) {
+        cardElement.classList.remove('expandido');
+        btn.innerText = "📄 Ver mais";
+    } else {
+        cardElement.classList.add('expandido');
+        btn.innerText = "🔼 Ler menos";
+    }
+}
+
+async function excluirCard(id) {
+    if (!confirm("Deseja eliminar esta anotação?")) return;
+    
+    try {
+        await fetch(`http://localhost:3000/api/notas/${id}`, { method: 'DELETE' });
+        await carregarDoServidor();
+        mostrarToast("Anotação eliminada! 🗑️");
+    } catch (erro) {
+        console.error("Erro ao eliminar a nota:", erro);
+    }
 }
 
 function renderizarCards() {
     const container = document.getElementById('grid-cards');
-    const contador = document.getElementById('contador-cards');
-    
-    container.innerHTML = ''; 
-    contador.innerText = listaDeCards.length;
+    if (!container) return;
+    container.innerHTML = "";
 
-    if (listaDeCards.length === 0) {
-        container.innerHTML = '<p id="mensagem-vazia">Nenhum card criado ainda.</p>';
-        return;
-    }
-
-    listaDeCards.forEach((card) => {
-        container.innerHTML += `
-            <div class="card-anotacao" style="background-color: ${card.cor};">
-                <button class="btn-excluir" onclick="excluirCard(${card.id})" title="Excluir anotação" style="position: absolute; top: 10px; right: 10px; background: transparent; border: none; color: #ff4d4d; font-weight: bold; cursor: pointer; font-size: 1.2rem;">×</button>
-                <h4>${card.titulo}</h4>
-                ${card.subtitulo ? `<h5 style="color: #555; margin-bottom: 8px;">${card.subtitulo}</h5>` : ''}
-                <hr style="border: 0; border-top: 1px solid rgba(0,0,0,0.1); margin: 8px 0;">
-                <p style="white-space: pre-wrap;">${card.texto}</p>
+    listaDeCards.forEach(card => {
+        const cardElement = document.createElement('div');
+        cardElement.className = 'card-anotacao';
+        cardElement.style.backgroundColor = card.cor;
+        
+        cardElement.innerHTML = `
+            <h3>${card.titulo}</h3>
+            ${card.subtitulo ? `<h4>${card.subtitulo}</h4>` : ''}
+            <p>${card.texto}</p>
+            <div class="card-rodape">
+                <button class="btn-card-ver" onclick="alternarExpansaoCard(this)">📄 Ver mais</button>
+                <div>
+                    <button class="btn-card-acao" onclick="iniciarEdicao(${card.id})">✏️</button>
+                    <button class="btn-card-acao" onclick="excluirCard(${card.id})">🗑️</button>
+                </div>
             </div>
         `;
+        container.appendChild(cardElement);
     });
+
+    const contador = document.getElementById('contador-cards');
+    if (contador) contador.innerText = listaDeCards.length;
 }
 
-function gerarPDF() {
-    if (listaDeCards.length === 0) {
-        alert("Você precisa criar pelo menos um card para gerar o PDF.");
-        return;
-    }
-
-    const botoesExcluir = document.querySelectorAll('.btn-excluir');
-    botoesExcluir.forEach(btn => btn.style.display = 'none');
-
-    const elementoAlvo = document.getElementById('grid-cards');
-    
-    const opcoesPDF = {
-        margin:       10,
-        filename:     'Minhas_Anotacoes_MathPasso.pdf',
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true }, 
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
-
-    const btn = document.querySelector('.btn-pdf');
-    const textoOriginal = btn.innerText;
-    btn.innerText = "Gerando PDF...";
-    btn.disabled = true;
-
-    html2pdf().set(opcoesPDF).from(elementoAlvo).save().then(() => {
-        btn.innerText = textoOriginal;
-        btn.disabled = false;
-        botoesExcluir.forEach(btn => btn.style.display = 'block');
-    });
+function mostrarToast(mensagem) {
+    const toast = document.getElementById('toast-notificacao');
+    if (!toast) return;
+    toast.innerText = message;
+    toast.classList.add('visivel');
+    setTimeout(() => toast.classList.remove('visivel'), 3000);
 }
 
 // ==========================================
-// 6. CHAT COM API REAL DO GEMINI 
+// 5. CHAT COM A IA (ALTURA FIXA E SEGURO)
 // ==========================================
-
-// --- ATENÇÃO: COLE SUA CHAVE NA LINHA ABAIXO ---
-const API_KEY = 'AIzaSyAq3j-0Nwxd9gl_bg0LSmGn165Fbe7Z3To'; 
-// -----------------------------------------------
-
-const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
-
 async function enviarMensagemIA() {
     const inputField = document.getElementById('ia-input');
-    const mensagem = inputField.value.trim();
+    if (!inputField) return;
     
+    const mensagem = inputField.value.trim();
     if (!mensagem) return;
 
-    adicionarMensagemNaTela('usuario', mensagem);
-    inputField.value = ''; 
+    adicionarMensagemNaTela('user', mensagem);
+    inputField.value = "";
     rolarChatParaBaixo();
 
-    const idPensando = Date.now();
-    adicionarMensagemNaTela('ia', 'Pensando...', idPensando);
+    const idMsgIA = Date.now();
+    adicionarMensagemNaTela('ia', 'A processar...', idMsgIA);
     rolarChatParaBaixo();
 
     try {
-        const respostaReal = await consultarGemini(mensagem);
-        atualizarMensagemNaTela(idPensando, respostaReal);
-    } catch (error) {
-        atualizarMensagemNaTela(idPensando, "Desculpe, ocorreu um erro ao conectar com a IA.");
-        console.error("Erro na chamada da API:", error);
+        const resposta = await fetch('http://localhost:3000/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pergunta: mensagem })
+        });
+        
+        const dados = await resposta.json();
+        atualizarMensagemNaTela(idMsgIA, dados.resposta);
+    } catch (erro) {
+        atualizarMensagemNaTela(idMsgIA, "Erro ao contactar a IA. Verifique o servidor.");
     }
-    
     rolarChatParaBaixo();
-}
-
-async function consultarGemini(pergunta) {
-    const promptDeContexto = `Você é um tutor acadêmico especialista em Matemática Computacional. 
-    Responda de forma clara, objetiva e amigável. 
-    Pergunta do aluno: ${pergunta}`;
-
-    const corpoRequisicao = {
-        contents: [
-            {
-                role: "user",
-                parts: [
-                    { text: promptDeContexto }
-                ]
-            }
-        ]
-    };
-
-    const resposta = await fetch(API_URL, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(corpoRequisicao)
-    });
-
-    if (!resposta.ok) {
-        throw new Error(`Erro na requisição: ${resposta.status}`);
-    }
-
-    const dados = await resposta.json();
-    return dados.candidates[0].content.parts[0].text;
 }
 
 function adicionarMensagemNaTela(remetente, texto, id = null) {
     const chatHistorico = document.getElementById('ia-chat-historico');
+    if (!chatHistorico) return;
+    
     const div = document.createElement('div');
     div.className = `mensagem ${remetente}`;
     if (id) div.id = `msg-${id}`;
-    
-    const textoFormatado = texto.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-    div.innerHTML = textoFormatado;
-    
+    div.innerText = texto;
     chatHistorico.appendChild(div);
 }
 
@@ -332,6 +295,100 @@ function atualizarMensagemNaTela(id, novoTexto) {
 function rolarChatParaBaixo() {
     const chatHistorico = document.getElementById('ia-chat-historico');
     if (chatHistorico) {
-        chatHistorico.scrollTop = chatHistorico.scrollHeight;
+        setTimeout(() => {
+            chatHistorico.scrollTop = chatHistorico.scrollHeight;
+        }, 50);
+    }
+}
+
+// ==========================================
+// 6. LÓGICA DO QUIZ DINÂMICO (BLOCO SUBSTITUÍDO)
+// ==========================================
+let questoesAtuais = [];
+let indiceQuestaoAtual = 0;
+let pontuacaoQuiz = 0;
+let respondido = false;
+
+async function carregarQuizDaAba(cursoId) {
+    try {
+        const resposta = await fetch(`http://localhost:3000/api/quiz/${cursoId}`); 
+        if (!resposta.ok) throw new Error("Erro ao buscar quiz");
+        
+        questoesAtuais = await resposta.json();
+        reiniciarQuiz(); 
+    } catch (erro) {
+        console.error("Erro na requisição do quiz:", erro);
+        const painelQuiz = document.getElementById('painel-quiz');
+        const btnTeste = document.querySelector('.btn-teste-conhecimento');
+        if (painelQuiz) painelQuiz.classList.add('style-hidden');
+        if (btnTeste) btnTeste.classList.add('style-hidden');
+    }
+}
+
+function exibirQuestao() {
+    respondido = false;
+    document.getElementById('btn-proxima-quiz').disabled = true;
+    document.getElementById('conteudo-quiz').classList.remove('style-hidden');
+    document.getElementById('resultado-quiz').classList.add('style-hidden');
+
+    const dadosQuestao = questoesAtuais[indiceQuestaoAtual];
+    document.getElementById('pergunta-texto').innerText = dadosQuestao.pergunta;
+    document.getElementById('quiz-progresso').innerText = `Questão ${indiceQuestaoAtual + 1} de ${questoesAtuais.length}`;
+
+    const containerOpcoes = document.getElementById('quiz-opcoes');
+    containerOpcoes.innerHTML = ''; 
+
+    dadosQuestao.opcoes.forEach((opcao, id) => {
+        const botaoOpcao = document.createElement('button');
+        botaoOpcao.className = 'opcao-card';
+        botaoOpcao.innerText = opcao;
+        botaoOpcao.onclick = () => verificarResposta(id, botaoOpcao);
+        containerOpcoes.appendChild(botaoOpcao);
+    });
+}
+
+function verificarResposta(idSelecionado, elementoClicado) {
+    if (respondido) return; 
+    respondido = true;
+
+    const questao = questoesAtuais[indiceQuestaoAtual];
+    const todosOsBotoes = document.querySelectorAll('.opcao-card');
+
+    if (idSelecionado === questao.correta) {
+        elementoClicado.classList.add('correta');
+        pontuacaoQuiz++;
+    } else {
+        elementoClicado.classList.add('errada');
+        todosOsBotoes[questao.correta].classList.add('correta');
+    }
+    document.getElementById('btn-proxima-quiz').disabled = false;
+}
+
+function proximaQuestao() {
+    indiceQuestaoAtual++;
+    if (indiceQuestaoAtual < questoesAtuais.length) {
+        exibirQuestao();
+    } else {
+        finalizarQuiz();
+    }
+}
+
+function finalizarQuiz() {
+    document.getElementById('conteudo-quiz').classList.add('style-hidden');
+    const painelResultado = document.getElementById('resultado-quiz');
+    painelResultado.classList.remove('style-hidden');
+    document.getElementById('quiz-nota-texto').innerText = `Você acertou ${pontuacaoQuiz} de ${questoesAtuais.length} questões.`;
+}
+
+function reiniciarQuiz() {
+    indiceQuestaoAtual = 0;
+    pontuacaoQuiz = 0;
+    if (questoesAtuais.length > 0) exibirQuestao();
+}
+
+function rolarParaQuiz() {
+    const secaoQuiz = document.getElementById('painel-quiz');
+    if (secaoQuiz) {
+        secaoQuiz.scrollIntoView({ behavior: 'smooth' });
     }
 }
