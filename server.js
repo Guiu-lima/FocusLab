@@ -132,7 +132,8 @@ app.post('/api/chat', async (req, res) => {
         const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" }); 
         const { pergunta } = req.body; 
 
-        const promptEducacional = `Você é uma IA educacional amigável do FocusLab. Responda de forma curta, didática e use formatação limpa. Pergunta do aluno: ${pergunta}`;
+        // 👇 AQUI ESTÁ A MODIFICAÇÃO QUE ADICIONEI 👇
+        const promptEducacional = `Você é uma IA educacional amigável do FocusLab. Responda de forma curta, didática e use formatação limpa. NUNCA use formatação matemática LaTeX (como os símbolos $ e $$) ou caracteres especiais de código em suas respostas. Use apenas texto simples. Pergunta do aluno: ${pergunta}`;
         
         const result = await model.generateContent(promptEducacional);
         
