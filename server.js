@@ -13,7 +13,7 @@ app.use(express.json()); // Permite receber dados em formato JSON
 let listaDeNotas = []; 
 
 const courses = {
-    "mintermos": { titulo: "Mintermos (Soma de Produtos)", videoId: "_S8NquuMiz8" },
+    "mintermos": { titulo: "Mintermos (Soma de Produtos)", videoId: "NHn2yijYr1A" },
     "maxtermos": { titulo: "Maxtermos (Produto de Somas)", videoId: "YE4oEqx_D3c" },
     "karnaugh": { titulo: "Mapa de Karnaugh", videoId: "YE4oEqx_D3c" }
 };
