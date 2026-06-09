@@ -18,7 +18,7 @@ const courses = {
     "karnaugh": { titulo: "Mapa de Karnaugh", videoId: "YE4oEqx_D3c" }
 };
 
-// BANCO DE DADOS DO QUIZ (Retorna as perguntas estruturadas para o Front-end)
+// BANCO DE DADOS DO QUIZ (Corrigido e Estruturado)
 const bancoQuiz = {
   "mintermos": [
     {
@@ -113,7 +113,7 @@ const bancoQuiz = {
       "id": 9,
       "pergunta": "Por que dizemos que a porta lógica AND realiza nativamente a operação de um mintermo isolado?",
       "opcoes": [
-        "Because a porta AND só produz uma saída nível alto (1) se todas as suas entradas forem verdadeiras, simulando exatamente a condição única de ativação do mintermo.",
+        "Porque a porta AND só produz uma saída nível alto (1) se todas as suas entradas forem verdadeiras, simulando exatamente a condição única de ativação do mintermo.",
         "Porque a porta AND inverte os bits de entrada automaticamente antes de somá-los.",
         "Porque ela força qualquer combinação de zeros a virar um resultado nulo na saída do circuito ou.",
         "Porque o mintermo trabalha exclusivamente com a soma lógica de variáveis não invertidas."
@@ -182,11 +182,22 @@ const bancoQuiz = {
       "pergunta": "Se uma função booleana é expressa na sua forma canónica de maxtermos como F(A,B,C) = ΠM(1, 4), o que isso significa sobre o comportamento do circuito?",
       "opcoes": [
         "A saída do circuito será igual a 0 apenas nas linhas decimais 1 e 4 da tabela verdade.",
-        "O circuito terá saídas em nível alto (1) apenas nas linhas 1 e 4.",
+        "O circuito terá saídas em nível alto (1) apenas nas lines 1 e 4.",
         "Existem apenas duas linhas válidas em toda a tabela verdade.",
         "As linhas 1 e 4 devem ser ignoradas por serem condições irrelevantes."
       ],
       "correta": 0
+    },
+    {
+      "id": 6,
+      "pergunta": "Para 3 variáveis, o maxtermo M0 (M-zero) representa a combinação A=0, B=0 e C=0. Como fica a sua soma lógica?",
+      "opcoes": [
+        "A' + B' + C'",
+        "A . B . C",
+        "A + B + C",
+        "A' . B' . C'"
+      ],
+      "correta": 2
     },
     {
       "id": 7,
@@ -227,7 +238,7 @@ const bancoQuiz = {
       "opcoes": [
         "Quando a tabela verdade possui muito menos saídas '0' do que saídas '1'.",
         "Quando o circuito não pode usar inversores.",
-        "Quando o número de variáveis é ímpar.",
+        "親 Quando o número de variáveis é ímpar.",
         "Sempre que o circuito for puramente sequencial."
       ],
       "correta": 0
@@ -335,7 +346,7 @@ const bancoQuiz = {
     },
     {
       "id": 10,
-      "pergunta": "Ao resolver um problema prático no papel, tens um mapa de 3 variáveis com '1s' localizados nas células m0, m2, m4 e m6. Qual é a estratégia correta de desenho para obter a resposta simplificada?",
+      "pergunta": "Ao resolver um problem prático no papel, tens um mapa de 3 variáveis com '1s' localizados nas células m0, m2, m4 e m6. Qual é a estratégia correta de desenho para obter a resposta simplificada?",
       "opcoes": [
         "Desenhar um único enlace de 4 células (quadra) unindo as duas colunas externas, o que elimina duas variáveis e resulta apenas na variável estável em zero.",
         "Desenhar quatro laços isolados de 1 célula cada para manter a precisão bruta.",
@@ -345,7 +356,7 @@ const bancoQuiz = {
       "correta": 0
     }
   ]
-}
+};
 
 // --- CONFIGURAÇÃO DA IA ---
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY); 
@@ -380,7 +391,6 @@ app.post('/api/notas', (req, res) => {
     res.status(201).json(novaNota);
 });
 
-// ROTA ADICIONADA: Permite atualizar/editar uma anotação existente no servidor 
 app.put('/api/notas/:id', (req, res) => {
     const id = parseInt(req.params.id);
     const { titulo, subtitulo, texto, cor, cursoId } = req.body;
@@ -401,13 +411,12 @@ app.delete('/api/notas/:id', (req, res) => {
     res.json({ mensagem: "Nota excluída com sucesso" }); 
 });
 
-// 3. Rota segura para o Gemini (Retornando a pergunta original)
+// 3. Rota segura para o Gemini
 app.post('/api/chat', async (req, res) => {
     try {
         const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" }); 
         const { pergunta } = req.body; 
 
-        // 👇 AQUI ESTÁ A MODIFICAÇÃO QUE ADICIONEI 👇
         const promptEducacional = `Você é uma IA educacional amigável do FocusLab. Responda de forma curta, didática e use formatação limpa. NUNCA use formatação matemática LaTeX (como os símbolos $ e $$) ou caracteres especiais de código em suas respostas. Use apenas texto simples. Pergunta do aluno: ${pergunta}`;
         
         const result = await model.generateContent(promptEducacional);
